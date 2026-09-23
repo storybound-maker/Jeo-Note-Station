@@ -1,13 +1,13 @@
 import {defineConfig,loadEnv}from"vite";
 import react from"@vitejs/plugin-react";
 
-async function research(query,env){
+async function research(query,env,context){
   const searchResponse=await fetch("https://api.tavily.com/search",{
     method:"POST",
     headers:{"Content-Type":"application/json"},
     body:JSON.stringify({
       api_key:env.TAVILY_API_KEY,
-      query,
+      query:context?.originalQuestion?`${context.originalQuestion} ${query}`:query,
       search_depth:"basic",
       max_results:6,
       include_answer:false,
@@ -34,7 +34,7 @@ Snippet: ${r.content||""}`).join("\n\n");
       model:"openrouter/free",
       messages:[
         {role:"system",content:"You are JEO Note Station's research assistant. Answer using only the supplied web sources. Be concise but useful. Include important facts and dates when relevant. Do not invent facts or citations. When sources disagree or evidence is incomplete, say so. Use plain text with short paragraphs and bullets when helpful."},
-        {role:"user",content:`Research question: ${query}\n\nWeb sources:\n${sourceText}`}
+        {role:"user",content:`Research question: ${query}${context?.originalQuestion?`\n\nThis is a follow-up to: ${context.originalQuestion}\nPrevious answer: ${context.previousAnswer||""}`:""}\n\nWeb sources:\n${sourceText}`}
       ],
       max_tokens:900
     })
@@ -59,9 +59,11 @@ export default defineConfig(({mode})=>{
           let raw="";
           for await(const chunk of req)raw+=chunk;
           try{
-            const query=JSON.parse(raw).query?.trim();
+            const body=JSON.parse(raw);
+            const query=body.query?.trim();
+            const context=body.context||null;
             if(!query){res.statusCode=400;return res.end(JSON.stringify({error:"A research question is required."}));}
-            const result=await research(query,env);
+            const result=await research(query,env,context);
             res.setHeader("Content-Type","application/json");
             res.end(JSON.stringify(result));
           }catch(error){
