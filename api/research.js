@@ -3,6 +3,7 @@ export default async function handler(req,res){
   if(!process.env.TAVILY_API_KEY)return res.status(500).json({error:"TAVILY_API_KEY is not configured on the server."});
   if(!process.env.OPENROUTER_API_KEY)return res.status(500).json({error:"OPENROUTER_API_KEY is not configured on the server."});
   const query=typeof req.body?.query==="string"?req.body.query.trim():"";
+  const context=req.body?.context&&typeof req.body.context==="object"?req.body.context:null;
   if(!query)return res.status(400).json({error:"A research question is required."});
   try{
     const searchResponse=await fetch("https://api.tavily.com/search",{
@@ -10,7 +11,7 @@ export default async function handler(req,res){
       headers:{"Content-Type":"application/json"},
       body:JSON.stringify({
         api_key:process.env.TAVILY_API_KEY,
-        query,
+        query:context?.originalQuestion?`${context.originalQuestion} ${query}`:query,
         search_depth:"basic",
         max_results:6,
         include_answer:false,
@@ -37,7 +38,7 @@ Snippet: ${r.content||""}`).join("\n\n");
         model:"openrouter/free",
         messages:[
           {role:"system",content:"You are JEO Note Station's research assistant. Answer using only the supplied web sources. Be concise but useful. Include important facts and dates when relevant. Do not invent facts or citations. When sources disagree or evidence is incomplete, say so. Use plain text with short paragraphs and bullets when helpful."},
-          {role:"user",content:`Research question: ${query}\n\nWeb sources:\n${sourceText}`}
+          {role:"user",content:`Research question: ${query}${context?.originalQuestion?`\n\nThis is a follow-up to: ${context.originalQuestion}\nPrevious answer: ${context.previousAnswer||""}`:""}\n\nWeb sources:\n${sourceText}`}
         ],
         max_tokens:900
       })
