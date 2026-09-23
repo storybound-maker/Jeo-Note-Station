@@ -1,205 +1,24 @@
-import React, { useMemo, useState } from "react";
-import { createRoot } from "react-dom/client";
-import "./styles.css";
-
-const initialNotes = [
-  { id: 1, title: "Welcome", body: "Welcome to JEO Note Station.", updated: "Just now" },
-  { id: 2, title: "LEG GO", body: "A place for ideas, plans, and unfinished thoughts.", updated: "Today" },
-  { id: 3, title: "Damn Boy", body: "Keep this one for later.", updated: "Yesterday" }
-];
-
-function Icon({ children, label }) {
-  return <span className="icon" aria-label={label}>{children}</span>;
-}
-
-function App() {
-  const [notes, setNotes] = useState(initialNotes);
-  const [activeId, setActiveId] = useState(null);
-  const [query, setQuery] = useState("");
-  const [ask, setAsk] = useState("");
-  const [settingsOpen, setSettingsOpen] = useState(false);
-
-  const activeNote = notes.find((note) => note.id === activeId);
-
-  const filteredNotes = useMemo(() => {
-    const value = query.trim().toLowerCase();
-    if (!value) return notes;
-    return notes.filter((note) =>
-      note.title.toLowerCase().includes(value) ||
-      note.body.toLowerCase().includes(value)
-    );
-  }, [notes, query]);
-
-  function createNote() {
-    const note = {
-      id: Date.now(),
-      title: "Untitled note",
-      body: "",
-      updated: "Just now"
-    };
-    setNotes((current) => [note, ...current]);
-    setActiveId(note.id);
-  }
-
-  function updateActive(field, value) {
-    setNotes((current) =>
-      current.map((note) =>
-        note.id === activeId ? { ...note, [field]: value, updated: "Just now" } : note
-      )
-    );
-  }
-
-  function deleteNote(id) {
-    setNotes((current) => current.filter((note) => note.id !== id));
-    if (activeId === id) setActiveId(null);
-  }
-
-  function handleAsk(event) {
-    event.preventDefault();
-    if (!ask.trim()) return;
-    const note = {
-      id: Date.now(),
-      title: ask.trim(),
-      body: "Created from Ask. Start writing here...",
-      updated: "Just now"
-    };
-    setNotes((current) => [note, ...current]);
-    setActiveId(note.id);
-    setAsk("");
-  }
-
-  return (
-    <div className="app-shell">
-      <aside className="sidebar">
-        <div className="brand">
-          <div className="brand-mark">N</div>
-          <div>
-            <div className="brand-title">Note Station</div>
-            <div className="brand-subtitle">JEO</div>
-          </div>
-        </div>
-
-        <div className="sidebar-spacer" />
-
-        <div className="sidebar-footer">
-          <button className="profile-button" title="Profile">
-            <span className="avatar">J</span>
-            <span className="profile-copy">
-              <strong>Workspace</strong>
-              <small>Personal</small>
-            </span>
-          </button>
-        </div>
-      </aside>
-
-      <main className="main">
-        <header className="topbar">
-          <div className="topbar-title">Notes</div>
-          <button
-            className="settings-button"
-            onClick={() => setSettingsOpen((open) => !open)}
-            aria-label="Settings"
-            title="Settings"
-          >
-            <Icon label="Settings">⚙</Icon>
-          </button>
-          {settingsOpen && (
-            <div className="settings-popover">
-              <strong>Note Station</strong>
-              <span>Desktop workspace</span>
-              <button onClick={() => setSettingsOpen(false)}>Close</button>
-            </div>
-          )}
-        </header>
-
-        <section className="content">
-          <form className="ask-box" onSubmit={handleAsk}>
-            <Icon label="Ask">✦</Icon>
-            <input
-              value={ask}
-              onChange={(event) => setAsk(event.target.value)}
-              placeholder="Ask"
-              aria-label="Ask"
-            />
-            <button type="submit" aria-label="Submit ask">↵</button>
-          </form>
-
-          <div className="quick-actions">
-            <button className="action-card" onClick={createNote}>
-              <span className="action-icon">+</span>
-              <span><strong>New note</strong><small>Start writing</small></span>
-            </button>
-            <label className="action-card search-card">
-              <span className="action-icon">⌕</span>
-              <span><strong>Search</strong><small>Find anything</small></span>
-              <input
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder="Search notes..."
-                aria-label="Search notes"
-              />
-            </label>
-          </div>
-
-          <div className="section-heading">
-            <h2>Recent</h2>
-            <span>{filteredNotes.length} notes</span>
-          </div>
-
-          <div className="notes-grid">
-            {filteredNotes.map((note) => (
-              <article
-                className={`note-card ${activeId === note.id ? "selected" : ""}`}
-                key={note.id}
-                onClick={() => setActiveId(note.id)}
-              >
-                <div className="note-card-top">
-                  <h3>{note.title || "Untitled note"}</h3>
-                  <button
-                    className="more-button"
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      deleteNote(note.id);
-                    }}
-                    title="Delete note"
-                  >•••</button>
-                </div>
-                <p>{note.body || "Empty note"}</p>
-                <small>{note.updated}</small>
-              </article>
-            ))}
-          </div>
-        </section>
-      </main>
-
-      {activeNote && (
-        <section className="editor-panel">
-          <div className="editor-header">
-            <button onClick={() => setActiveId(null)} className="back-button">←</button>
-            <span>Editing</span>
-            <span className="save-state">Saved</span>
-          </div>
-          <div className="editor">
-            <input
-              className="title-input"
-              value={activeNote.title}
-              onChange={(event) => updateActive("title", event.target.value)}
-              placeholder="Untitled note"
-            />
-            <textarea
-              className="body-input"
-              value={activeNote.body}
-              onChange={(event) => updateActive("body", event.target.value)}
-              placeholder="Start writing..."
-              autoFocus
-            />
-          </div>
-        </section>
-      )}
-    </div>
-  );
-}
-
-createRoot(document.getElementById("root")).render(
-  <React.StrictMode><App /></React.StrictMode>
-);
+import React,{useEffect,useMemo,useState}from"react";import{createRoot}from"react-dom/client";import"./styles.css";
+const starter=[{id:1,type:"text",title:"Welcome",body:"Welcome to JEO Note Station.",updated:"Just now"},{id:2,type:"text",title:"LEG GO",body:"A place for ideas, plans, and unfinished thoughts.",updated:"Today"},{id:3,type:"text",title:"Damn Boy",body:"Keep this one for later.",updated:"Yesterday"}];
+const nav=[["home","Notes","⌂"],["projects","Projects","▱"],["documents","Documents","□"],["templates","Templates","▤"],["search","Search","⌕"]];
+function App(){const[notes,setNotes]=useState(()=>{try{return JSON.parse(localStorage.getItem("jeo-notes"))||starter}catch{return starter}}),[screen,setScreen]=useState("home"),[active,setActive]=useState(null),[query,setQuery]=useState(""),[ask,setAsk]=useState(""),[create,setCreate]=useState(false),[profile,setProfile]=useState(false),[research,setResearch]=useState(""),[busy,setBusy]=useState(false),[settings,setSettings]=useState(false);
+useEffect(()=>localStorage.setItem("jeo-notes",JSON.stringify(notes)),[notes]);
+const filtered=useMemo(()=>{let q=query.trim().toLowerCase();return q?notes.filter(n=>(n.title+" "+n.body).toLowerCase().includes(q)):notes},[notes,query]);
+const activeNote=notes.find(n=>n.id===active);
+const go=s=>{setScreen(s);setCreate(false);setProfile(false)};
+const newNote=type=>{let labels={text:"Untitled note",audio:"Audio note",image:"Image note",template:"New template"};let n={id:Date.now(),type,title:labels[type],body:type==="audio"?"Audio capture ready. Add your recording here.":"",updated:"Just now"};setNotes(x=>[n,...x]);setActive(n.id);setCreate(false);setScreen("home")};
+const update=(f,v)=>setNotes(x=>x.map(n=>n.id===active?{...n,[f]:v,updated:"Just now"}:n));
+const del=id=>{setNotes(x=>x.filter(n=>n.id!==id));if(active===id)setActive(null)};
+const doResearch=q=>{if(!q.trim())return;setResearch(q);setScreen("research");setBusy(true);setTimeout(()=>setBusy(false),550)};
+const submitAsk=e=>{e.preventDefault();doResearch(ask);setAsk("")};
+return <div className="app"><aside><div className="brand"><b>N</b><span>Note Station<small>JEO</small></span></div><nav>{nav.map(([id,label,ico])=><button className={screen===id?"on":""} onClick={()=>go(id)} key={id}><i>{ico}</i>{label}</button>)}</nav><label>WORKSPACE</label><button onClick={()=>go("meetings")}>◫ Meetings</button><button onClick={()=>go("archives")}>▧ Archives</button><div className="grow"/><button className="profileBtn" onClick={()=>setProfile(true)}><em>J</em><span><strong>Workspace</strong><small>Personal</small></span><i>⌄</i></button></aside>
+<main><header><div><small>JEO / NOTE STATION</small><strong>{screen==="home"?"Notes":screen[0].toUpperCase()+screen.slice(1)}</strong></div><section><button onClick={()=>setSettings(!settings)}>⚙</button><button onClick={()=>setProfile(true)}>J</button></section>{settings&&<div className="popover"><b>Note Station</b><span>Your private workspace</span><button onClick={()=>setSettings(false)}>Close</button></div>}</header>
+{screen==="home"&&<Page><div className="intro"><small>PERSONAL WORKSPACE</small><h1>Keep your thoughts moving.</h1><p>Write, collect, research, and organize everything in one quiet space.</p></div><form className="ask" onSubmit={submitAsk}><span>✦</span><input value={ask} onChange={e=>setAsk(e.target.value)} placeholder="Ask your personal web AI to research something…"/><small>Web research</small><button>→</button></form><div className="quick"><button onClick={()=>setCreate(true)}><b>＋</b><span><strong>Create</strong><small>Text, audio, image or template</small></span></button><button onClick={()=>go("search")}><b>⌕</b><span><strong>Search</strong><small>Projects, documents and templates</small></span></button></div><div className="heading"><h2>Recent <small>Your latest work</small></h2><span>{filtered.length} items</span></div><div className="grid">{filtered.map(n=><article onClick={()=>setActive(n.id)} className={active===n.id?"selected":""} key={n.id}><div><small>{n.type}</small><button onClick={e=>{e.stopPropagation();del(n.id)}}>×</button></div><h3>{n.title}</h3><p>{n.body||"Empty note — start writing."}</p><time>{n.updated}</time></article>)}</div></Page>}
+{screen==="search"&&<Page><Intro title="Search your workspace." sub="Look across projects, documents, and templates."/><div className="largeSearch">⌕<input autoFocus value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search anything…"/></div><div className="chips">{["All","Projects","Documents","Templates"].map(x=><button className={x==="All"?"active":""}>{x}</button>)}</div><div className="rows">{filtered.map(n=><button onClick={()=>{setScreen("home");setActive(n.id)}}><b>□</b><span><strong>{n.title}</strong><small>{n.body||"Empty note"}</small></span><small>{n.updated}</small></button>)}</div></Page>}
+{screen==="research"&&<Page><Intro title="Research workspace." sub="Ask a question, gather sources, then turn what you learn into notes."/><form className="research" onSubmit={e=>{e.preventDefault();doResearch(research)}}><span>✦</span><input value={research} onChange={e=>setResearch(e.target.value)} placeholder="What do you want to research?"/><button>Research</button></form>{busy?<div className="empty"><b>◌</b><strong>Researching your question…</strong><span>Preparing your source workspace</span></div>:research?<div className="sources">{["Research workspace","Source collection","Turn research into notes"].map((x,i)=><article><small>0{i+1} · JEO WEB RESEARCH</small><h3>{x}</h3><p>{i?"This space is designed for live sources, citations, saved findings and notes.":"Your research request is ready. Connect the web research service here to populate live sources, citations and summaries."}</p><button>Save to notes →</button></article>)}</div>:<div className="empty"><b>✦</b><strong>Start a research session</strong><span>Your results, sources, citations and saved findings will appear here.</span></div>}</Page>}
+{["projects","documents","templates","meetings","archives"].includes(screen)&&<Page><Intro title={screen==="meetings"?"Meetings":screen[0].toUpperCase()+screen.slice(1)+"."} sub={screen==="meetings"?"Keep conversations, reminders and plans close to your notes.":"A focused space for your JEO workspace."}/>{screen==="meetings"?<div className="meeting">{["Connect","Reminders","Plans"].map(x=><button><b>{x[0]}</b><span><strong>{x}</strong><small>{x==="Connect"?"People, conversations and shared context.":x==="Reminders"?"Keep important follow-ups visible.":"Turn ideas into simple plans and next steps."}</small></span>→</button>)}</div>:<div className="empty"><b>{screen==="archives"?"▧":"□"}</b><strong>Your {screen} space is ready.</strong><span>We can build this area around the Station visual language as it grows.</span></div>}</Page>}
+</main>
+{create&&<Modal title="Create" close={()=>setCreate(false)}><div className="create">{[["Text","A clean blank note","text"],["Audio","Capture an audio thought","audio"],["Image","Start an image note","image"],["Templates","Start from a reusable structure","template"]].map(([a,b,c])=><button onClick={()=>c==="template"?go("templates"):newNote(c)}><b>{c==="Audio"?"◉":c==="Image"?"▧":c==="Templates"?"▤":"□"}</b><span><strong>{a}</strong><small>{b}</small></span>→</button>)}</div></Modal>}
+{profile&&<Modal title="Profile" wide close={()=>setProfile(false)}><div className="profile"><div className="hero"><b>J</b><span><small>PERSONAL WORKSPACE</small><h2>Workspace</h2><p>Your private JEO Station.</p></span><button>Edit Profile</button></div><label>MEETINGS</label>{["Connect","Reminders","Plans"].map(x=><button onClick={()=>go("meetings")}>{x}<span>→</span></button>)}<label>ARCHIVES</label><button onClick={()=>go("archives")}>Archived notes and work <span>→</span></button></div></Modal>}
+{activeNote&&<div className="editor"><header><button onClick={()=>setActive(null)}>←</button><span>Editing</span><small>Saved locally</small><button onClick={()=>del(activeNote.id)}>Delete</button></header><section><small>{activeNote.type} note</small><input value={activeNote.title} onChange={e=>update("title",e.target.value)} placeholder="Untitled note"/><textarea value={activeNote.body} onChange={e=>update("body",e.target.value)} placeholder="Start writing…"/></section></div>}</div>}
+function Page({children}){return <section className="content">{children}</section>}function Intro({title,sub}){return <div className="intro"><small>WORKSPACE</small><h1>{title}</h1><p>{sub}</p></div>}function Modal({title,close,children,wide}){return <div className="backdrop" onMouseDown={close}><div className={wide?"modal wide":"modal"} onMouseDown={e=>e.stopPropagation()}><header><div><small>JEO NOTE STATION</small><h2>{title}</h2></div><button onClick={close}>×</button></header>{children}</div></div>}createRoot(document.getElementById("root")).render(<App/>);
