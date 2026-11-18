@@ -28,7 +28,7 @@ Snippet: ${r.content||""}`).join("\n\n");
       "Content-Type":"application/json",
       "Authorization":`Bearer ${env.OPENROUTER_API_KEY}`,
       "HTTP-Referer":env.APP_URL||"http://localhost:5173",
-      "X-Title":"JEO Note Station"
+      "X-Title":"INKNIB"
     },
     body:JSON.stringify({
       model:"openrouter/free",
@@ -50,7 +50,7 @@ export default defineConfig(({mode})=>{
   const env=loadEnv(mode,process.cwd(),"");
   return {
     plugins:[react(),{
-      name:"jeo-local-research-api",
+      name:"inknib-local-research-api",
       configureServer(server){
         server.middlewares.use("/api/research",async(req,res)=>{
           if(req.method!=="POST"){res.statusCode=405;return res.end(JSON.stringify({error:"Method not allowed"}));}
